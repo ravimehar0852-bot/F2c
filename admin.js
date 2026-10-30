@@ -264,13 +264,96 @@ async function isAdmin(u) { try { const s = await getDoc(doc(db, "admins", u.uid
 if (!configured) {
   A.innerHTML = `<p class="empty">Firebase is not configured. Add your keys in firebase-config.js.</p>`;
 } else {
-  if (page === "login") renderLogin();
-  onAuthStateChanged(auth, async u => {
-    if (page === "login") { if (u && await isAdmin(u)) location.replace(HOME_URL); else if (u) { await signOut(auth); location.replace(LOGIN_URL + "?denied=1"); } return; }
-    if (!u) return location.replace(LOGIN_URL);
-    if (!await isAdmin(u)) { await signOut(auth); return location.replace(LOGIN_URL + "?denied=1"); }
-    const who = document.getElementById("who"); if (who) who.textContent = me();
-    const out = document.getElementById("logout"); if (out) out.onclick = async () => { await signOut(auth); location.replace(LOGIN_URL); };
-    try { await route(); } catch (x) { console.error(x); A.innerHTML = `<p class="empty">${x.code === "permission-denied" ? "Permission denied. Check firestore.rules and your admins/&lt;uid&gt; document." : "Something went wrong: " + esc(x.message || x)}</p>`; }
+if (page === "login") {
+  const f = $("#adminLogin");
+  const err = m => $("#aerr").textContent = m;
+
+  if (new URLSearchParams(location.search).get("denied")) {
+    err("This account is not authorised for admin access.");
+  }
+
+  if (!configured) {
+    err("Firebase is not configured.");
+  }
+
+  f.addEventListener("submit", async e => {
+    e.preventDefault();
+    err("");
+
+    if (!configured) return;
+
+    const b = f.querySelector("button");
+    b.disabled = true;
+
+    try {
+      // STEP 1: Check email and password
+      let userCredential;
+
+      try {
+        userCredential = await signInWithEmailAndPassword(
+          auth,
+          f.email.value.trim(),
+          f.password.value
+        );
+      } catch (authError) {
+        if (
+          authError.code === "auth/invalid-credential" ||
+          authError.code === "auth/wrong-password" ||
+          authError.code === "auth/user-not-found"
+        ) {
+          throw new Error("WRONG_PASSWORD");
+        }
+
+        if (authError.code === "auth/invalid-email") {
+          throw new Error("Invalid email address.");
+        }
+
+        if (authError.code === "auth/too-many-requests") {
+          throw new Error("Too many attempts. Try again later.");
+        }
+
+        if (authError.code === "auth/unauthorized-domain") {
+          throw new Error("Vercel domain is not authorised in Firebase.");
+        }
+
+        throw authError;
+      }
+
+      const user = userCredential.user;
+
+      // STEP 2: Check admin permission
+      let adminDoc;
+
+      try {
+        adminDoc = await getDoc(doc(db, "admins", user.uid));
+      } catch (firestoreError) {
+        console.error("Admin Firestore Error:", firestoreError);
+        throw new Error("FIRESTORE_ERROR");
+      }
+
+      if (!adminDoc.exists()) {
+        await signOut(auth);
+        throw new Error("ADMIN_NOT_FOUND");
+      }
+
+      // STEP 3: Login successful
+      location.href = "admin-dashboard.html";
+
+    } catch (error) {
+      console.error("Admin Login Error:", error);
+
+      if (error.message === "WRONG_PASSWORD") {
+        err("Email ya password galat hai.");
+      } else if (error.message === "ADMIN_NOT_FOUND") {
+        err("Login details sahi hain, lekin Admin UID registered nahi hai.");
+      } else if (error.message === "FIRESTORE_ERROR") {
+        err("Firestore permission error. Admin document aur Rules check karo.");
+      } else {
+        err(error.message || "Login failed. Please try again.");
+      }
+
+    } finally {
+      b.disabled = false;
+    }
   });
 }
