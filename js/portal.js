@@ -1,67 +1,65 @@
-/* Customer login + dashboard */
-import { auth, db, configured } from "../firebase-config.js";
-import { signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc, getDocs, updateDoc, query, where, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { esc, inr, dt, emi, maskPan, ms } from "./util.js";
-const page = document.body.dataset.page, toast = (m, t) => window.toast(m, t);
+/* Customer portal: login page + dashboard (profile, applications, notifications, documents). */
+import { auth, db, configured } from "./firebase-config.js";
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { collection, doc, getDoc, getDocs, updateDoc, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { esc, inr, dt, ms, maskPan } from "./util.js";
 
-if (page === "login") {
-  const f = document.getElementById("loginForm");
-  if (!configured) document.querySelector("[data-fb-notice]").hidden = false;
+const page = document.body.dataset.page;
+const note = (host, msg, ok) => { let n = host.parentNode.querySelector(".js-msg"); if (!n) { n = document.createElement("p"); n.className = "js-msg notice"; n.setAttribute("role", "alert"); n.style.marginBottom = "14px"; host.parentNode.insertBefore(n, host); } n.classList.toggle("err", !ok); n.textContent = msg; n.hidden = !msg; };
+const chip = s => `<span class="chip s-${esc(String(s || "none").toLowerCase().replace(/[^a-z]+/g, "-"))}">${esc(s || "—")}</span>`;
+const kv = rows => `<dl class="review">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v || "—"}</dd></div>`).join("")}</dl>`;
+const authMsg = c => ({ "auth/invalid-credential": "Wrong email or password.", "auth/wrong-password": "Wrong email or password.", "auth/user-not-found": "No account found with this email.", "auth/invalid-email": "Enter a valid email address.", "auth/too-many-requests": "Too many attempts. Please try again later.", "auth/network-request-failed": "Network error. Check your internet.", "auth/unauthorized-domain": "This website domain is not authorised in Firebase.", "auth/operation-not-allowed": "Email/Password sign-in is not enabled in Firebase." }[c] || "Something went wrong.") + (c ? " [" + c + "]" : "");
+
+/* ---------------- LOGIN ---------------- */
+function loginPage() {
+  const f = document.getElementById("loginForm"); if (!f) return;
+  if (!configured || !auth) { note(f, "Login is temporarily unavailable. Please call us or message us on WhatsApp."); return; }
+  onAuthStateChanged(auth, u => { if (u) location.replace("dashboard.html"); });
   f.addEventListener("submit", async e => {
-    e.preventDefault(); const b = f.querySelector("button[type=submit]");
-    if (!configured) return toast("Login is temporarily unavailable.", "error");
-    b.disabled = true; b.innerHTML = '<span class="spin"></span> Signing in…';
-    try { await signInWithEmailAndPassword(auth, f.email.value.trim(), f.password.value); location.href = "dashboard.html"; }
-    catch (err) { toast(["auth/invalid-credential", "auth/wrong-password", "auth/user-not-found", "auth/invalid-email"].includes(err.code) ? "Incorrect email or password." : err.code === "auth/too-many-requests" ? "Too many attempts. Please wait and try again." : "Could not sign in. Check your connection.", "error"); b.disabled = false; b.textContent = "Log in"; }
+    e.preventDefault(); note(f, "");
+    const email = f.email.value.trim(), pw = f.password.value, btn = f.querySelector("button[type=submit]");
+    if (!email || !pw) return note(f, "Enter your email and password.");
+    btn.disabled = true; btn.textContent = "Logging in…";
+    try { await signInWithEmailAndPassword(auth, email, pw); location.replace("dashboard.html"); }
+    catch (x) { note(f, authMsg(x.code)); btn.disabled = false; btn.textContent = "Log in"; }
   });
-  document.getElementById("forgot").addEventListener("click", async () => {
-    const em = f.email.value.trim(); if (!em) return toast("Enter your email first, then press Forgot password.", "error");
-    try { await sendPasswordResetEmail(auth, em); } catch (_) {}
-    toast("If this email is registered, a reset link has been sent.", "ok");
+  document.getElementById("forgot")?.addEventListener("click", async () => {
+    const email = f.email.value.trim();
+    if (!email) return note(f, "Type your email above first, then tap Forgot password.");
+    try { await sendPasswordResetEmail(auth, email); } catch (x) { if (x.code === "auth/invalid-email") return note(f, authMsg(x.code)); }
+    note(f, "If an account exists for this email, a password reset link has been sent.", true);
   });
 }
 
-if (page === "dashboard") {
-  const host = document.getElementById("dash");
-  if (!configured) host.innerHTML = '<div class="notice err">The customer portal is temporarily unavailable.</div>';
-  else onAuthStateChanged(auth, async u => { if (!u) return location.replace("login.html"); try { await render(u); } catch (e) { console.error(e); host.innerHTML = '<div class="notice err">Could not load your dashboard. Please refresh or contact support.</div>'; } });
-
-  const chip = s => `<span class="chip s-${esc(String(s).toLowerCase().replace(/[^a-z]+/g, "-"))}">${esc(s)}</span>`;
-  const kv = rows => `<dl class="review">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl>`;
-  const get = async (col, uid, extra) => (await getDocs(query(collection(db, col), where("uid", "==", uid), ...extra))).docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => ms(b.createdAt) - ms(a.createdAt));
-
-  async function render(u) {
-    const cs = await getDoc(doc(db, "customers", u.uid));
-    if (!cs.exists()) { host.innerHTML = '<div class="notice err">We could not find a registration for this account. Please contact support or register again with a different email.</div><p style="margin-top:16px"><button class="btn btn-ghost" id="lo">Logout</button></p>'; document.getElementById("lo").onclick = () => signOut(auth).then(() => location.href = "index.html"); return; }
-    const c = cs.data();
-    const [apps, agr, rt, comp] = await Promise.all([get("applications", u.uid, []), get("agreements", u.uid, [where("visibleToCustomer", "==", true)]), get("rtgsRecords", u.uid, [where("visibleToCustomer", "==", true)]), get("complianceReviews", u.uid, [where("visibleToCustomer", "==", true)])]);
-    const notes = (await getDocs(collection(db, "customers", u.uid, "notifications"))).docs.map(d => d.data()).sort((a, b) => ms(b.createdAt) - ms(a.createdAt));
-    host.innerHTML = `
-    <div class="bar-row"><div><h1 style="font-size:clamp(1.8rem,4vw,2.6rem)">Welcome, ${esc(c.fullName.split(" ")[0])}</h1><p>Customer ID: <b>${esc(c.customerId)}</b></p></div><span class="sp"></span><button class="btn btn-ghost btn-sm" id="lo">Logout</button></div>
-    ${u.emailVerified ? "" : '<div class="notice" style="margin:16px 0">Your email address is not verified yet. Please use the link we emailed you.</div>'}
-    <div class="grid g2" style="margin-top:24px">
-      <div class="card"><h3>Personal profile</h3>${kv([["Name", esc(c.fullName)], ["Date of birth", esc(c.dob)], ["Mobile", esc(c.mobile)], ["Email", esc(c.email)], ["PAN", maskPan(c.pan)], ["Identity verification", chip(c.identityStatus)], ["Address verification", chip(c.addressStatus)], ["Documents", chip(c.docsStatus)]])}</div>
-      <div class="card"><h3>Employment and income</h3>${kv([["Employment", esc(c.employmentType)], ["Employer / business", esc(c.employerName)], ["Duration", esc(c.employmentMonths) + " months"], ["Monthly income", inr(c.monthlyIncome)], ["Income source", esc(c.incomeSource)], ["Existing monthly obligations", inr(c.otherObligations)]])}</div>
-      <div class="card"><h3>Update address</h3><form id="addrForm" novalidate><div class="field"><label for="ac">Current address</label><textarea id="ac">${esc(c.addressCurrent)}</textarea></div><div class="field"><label for="ap">Permanent address</label><textarea id="ap">${esc(c.addressPermanent)}</textarea></div><p class="hint" style="margin-bottom:12px">Name, mobile, PAN and other verified details can be changed only after re-verification. Please contact support.</p><button class="btn btn-primary btn-sm" type="submit">Save address</button></form></div>
-      <div class="card"><h3>Messages from our team</h3>${notes.length ? notes.map(n => `<p style="margin-bottom:12px"><b>${esc(n.title)}</b><br>${esc(n.body)}<br><small>${dt(n.createdAt)}</small></p>`).join("") : "<p>No messages yet.</p>"}</div>
-    </div>
-    <h2 style="font-size:1.6rem;margin:40px 0 16px">My applications</h2>
-    ${apps.length ? apps.map(a => { const t = a.termsVisible && a.terms; return `<div class="card" style="margin-bottom:16px"><div class="bar-row"><h3 style="margin:0">${esc(a.applicationId)}</h3><span class="sp"></span>${chip(a.status)}</div>
-      ${kv([["Requested amount", inr(a.loanAmount)], ["Purpose", esc(a.purpose)], ["Requested tenure", esc(a.tenureMonths) + " months"], ["Submitted", dt(a.createdAt)]])}
-      ${a.missingDocs?.length ? `<div class="notice" style="margin:12px 0"><b>Documents requested:</b> ${a.missingDocs.map(esc).join(", ")}</div>` : ""}
-      ${t ? `<h4 style="margin:14px 0 8px">Proposed terms</h4>${kv([["Interest rate (per year)", esc(t.interestRatePct) + "%"], ["Processing fee", esc(t.processingFeePct) + "%"], ["Other charges", esc(t.otherCharges || "None stated")], ["Tenure", esc(t.tenureMonths) + " months"], ["Estimated EMI", inr(t.estimatedEmi)]])}<p class="hint">These terms are proposed by the company and are not binding until set out in a written agreement. A Key Facts Statement will be provided before you accept.</p>` : ""}
-      <details style="margin-top:12px"><summary>Status history</summary><p>${(a.statusHistory || []).map(h => `${chip(h.status)} <small>${dt(h.at)}</small>`).join("<br>")}</p></details></div>`; }).join("") : "<p>No applications yet.</p>"}
-    <div class="grid g2" style="margin-top:28px">
-      <div class="card"><h3>Agreements</h3>${agr.length ? agr.map(a => `<p><b>${esc(a.ref)}</b> ${chip(a.status)}<br>${inr(a.loanAmount)} · ${esc(a.interestRatePct)}% · ${esc(a.tenureMonths)} months</p>`).join("") : "<p>No agreements shared with you yet.</p>"}</div>
-      <div class="card"><h3>Transactions</h3>${rt.length ? rt.map(a => `<p><b>${esc(a.transferType)}</b> ${inr(a.amount)} ${chip(a.status)}<br><small>${esc(a.transactionDate)} ${a.status !== "Verified" ? "· awaiting verification" : ""}</small></p>`).join("") : "<p>No transactions to show.</p>"}</div>
-      ${comp.length ? `<div class="card"><h3>Review status</h3>${comp.map(a => `<p>${chip(a.status)}<br>${esc(a.customerMessage || "")}</p>`).join("")}</div>` : ""}
-    </div>`;
-    document.getElementById("lo").onclick = () => signOut(auth).then(() => location.href = "index.html");
-    document.getElementById("addrForm").addEventListener("submit", async e => {
-      e.preventDefault(); const a = document.getElementById("ac").value.trim(), p = document.getElementById("ap").value.trim();
-      if (a.length < 10) return toast("Enter your full current address.", "error");
-      try { await updateDoc(doc(db, "customers", u.uid), { addressCurrent: a, addressPermanent: p || a, updatedAt: serverTimestamp() }); toast("Address updated.", "ok"); } catch (err) { toast("Could not update address.", "error"); }
-    });
-  }
+/* ---------------- DASHBOARD ---------------- */
+const safe = async p => { try { return await p; } catch (e) { console.warn(e); return []; } };
+async function dashboard() {
+  const host = document.getElementById("dash"); if (!host) return;
+  if (!configured || !auth) { host.innerHTML = `<p class="notice err">Dashboard is temporarily unavailable. Please call us or message us on WhatsApp.</p>`; return; }
+  onAuthStateChanged(auth, async u => {
+    if (!u) return location.replace("login.html");
+    try {
+      const cs = await getDoc(doc(db, "customers", u.uid));
+      if (!cs.exists()) { host.innerHTML = `<p class="notice err">No customer profile found for ${esc(u.email)}. If you just registered, please contact us. <button class="btn btn-ghost btn-sm" id="so">Log out</button></p>`; host.querySelector("#so").onclick = out; return; }
+      const c = { id: cs.id, ...cs.data() };
+      const q = (col, ...x) => safe(getDocs(query(collection(db, col), where("uid", "==", u.uid), ...x)).then(s => s.docs.map(d => ({ id: d.id, ...d.data() }))));
+      const [apps, agr, trf, cmp, nts] = await Promise.all([
+        q("applications"), q("agreements", where("visibleToCustomer", "==", true)), q("rtgsRecords", where("visibleToCustomer", "==", true)), q("complianceReviews", where("visibleToCustomer", "==", true)),
+        safe(getDocs(query(collection(db, "customers", u.uid, "notifications"), orderBy("createdAt", "desc"), limit(20))).then(s => s.docs.map(d => ({ id: d.id, ...d.data() }))))
+      ]);
+      const by = (a, b) => ms(b.createdAt) - ms(a.createdAt); apps.sort(by);
+      const rs = n => "Rs. " + Number(n || 0).toLocaleString("en-IN");
+      host.innerHTML = `<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:18px"><h1 style="font-size:clamp(1.6rem,4vw,2.4rem)">Welcome, ${esc(c.name || c.fullName || "customer")}</h1><button class="btn btn-ghost btn-sm" id="so">Log out</button></div>
+      <div class="grid g2"><div class="card"><small>Your Customer ID</small><h2 style="margin:6px 0 14px">${esc(c.customerId)}</h2>${kv([["Email", esc(c.email || u.email)], ["Mobile", esc(c.phone || c.mobile)], ["PAN", esc(c.pan ? maskPan(c.pan) : "")], ["City", esc(c.city)], ["Registered", esc(dt(c.createdAt))]])}</div>
+      <div class="card"><h3>Messages ${nts.some(n => !n.read) ? chip("New") : ""}</h3>${nts.length ? nts.map(n => `<div style="padding:10px 0;border-top:1px solid var(--line)"><b>${esc(n.title)}</b>${n.read ? "" : ` <button class="btn btn-ghost btn-sm" data-read="${esc(n.id)}">Mark read</button>`}<p>${esc(n.body)}</p><small>${esc(dt(n.createdAt))}</small></div>`).join("") : `<p class="hint">No messages yet.</p>`}</div></div>
+      <div class="card" style="margin-top:20px"><h3>My applications</h3>${apps.length ? apps.map(a => `<div style="padding:12px 0;border-top:1px solid var(--line)"><b>${esc(a.applicationId)}</b> ${chip(a.status)}<p>${rs(a.loanAmount)} · ${esc(a.tenureMonths)} months · ${esc(a.loanType || "")}</p><small>Applied ${esc(dt(a.createdAt))}</small>${a.adminRemarks ? `<p class="hint">Note from our team: ${esc(a.adminRemarks)}</p>` : ""}</div>`).join("") : `<p class="hint">No applications yet. <a href="register.html">Apply now</a>.</p>`}</div>
+      ${agr.length || trf.length || cmp.length ? `<div class="card" style="margin-top:20px"><h3>Documents &amp; updates</h3>${agr.map(r => `<p>Agreement ${esc(r.ref)} ${chip(r.status)}</p>`).join("")}${trf.map(r => `<p>Transfer ${esc(r.ref)} · ${rs(r.amount)} ${chip(r.status)}</p>`).join("")}${cmp.map(r => `<p>Review ${esc(r.ref)} ${chip(r.status)}${r.customerMessage ? `<br><small>${esc(r.customerMessage)}</small>` : ""}</p>`).join("")}</div>` : ""}`;
+      host.querySelector("#so").onclick = out;
+      host.addEventListener("click", async e => { const b = e.target.closest("[data-read]"); if (!b) return; b.disabled = true; try { await updateDoc(doc(db, "customers", u.uid, "notifications", b.dataset.read), { read: true }); b.remove(); } catch { b.disabled = false; } });
+    } catch (x) { console.error(x); host.innerHTML = `<p class="notice err">Could not load your dashboard: ${esc(x.message || x)}</p>`; }
+  });
 }
+async function out() { await signOut(auth); location.replace("login.html"); }
+
+if (page === "login") loginPage(); else if (page === "dashboard") dashboard();
+                                                                                                                                                                                                                                                   
