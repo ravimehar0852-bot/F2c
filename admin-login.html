@@ -84,7 +84,23 @@
 
   <script src="js/config.js"></script>
 
-  <script type="module" src="js/admin.js"></script>
+  <script>
+/* DEBUG GUARD: login refresh nahi hoga, aur JS load fail hua to screen pe error dikhega */
+(function(){
+  function show(msg){
+    var f=document.querySelector("form")||document.getElementById("regApp");
+    if(!f)return;
+    var n=document.getElementById("jsFail");
+    if(!n){n=document.createElement("p");n.id="jsFail";n.className="notice err";n.setAttribute("role","alert");f.parentNode.insertBefore(n,f);}
+    n.textContent=msg;
+  }
+  window.__showJsFail=show;
+  document.addEventListener("submit",function(e){e.preventDefault();},true);
+  window.addEventListener("error",function(e){show("JS error: "+(e.message||e.filename||"script load failed"));});
+  window.addEventListener("unhandledrejection",function(e){show("JS error: "+((e.reason&&e.reason.message)||e.reason));});
+})();
+</script>
+<script type="module" src="js/admin.js" onerror="__showJsFail('js/admin.js load nahi hua (404 / path galat). Network tab check karo.')"></script>
 
 </body>
 </html>
