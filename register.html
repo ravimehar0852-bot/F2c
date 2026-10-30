@@ -27,4 +27,20 @@
 <button class="totop" aria-label="Back to top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
 <div id="toast" role="status" aria-live="polite"></div>
 <dialog id="modal" aria-labelledby="modalTitle"><div class="dlg"><h2 id="modalTitle"></h2><p id="modalBody"></p><button class="btn btn-primary" data-close>Close</button></div></dialog>
-<script>(function(){var b=document.querySelector(".burger"),n=document.getElementById("nav");if(!b||!n)return;window.MENU_BOUND=true;function c(){n.classList.remove("open");b.setAttribute("aria-expanded","false")}b.addEventListener("click",function(){var o=n.classList.toggle("open");b.setAttribute("aria-expanded",o)});n.addEventListener("click",function(e){if(e.target.closest("a"))c()});document.addEventListener("keydown",function(e){if(e.key==="Escape")c()})})();</script><script src="js/config.js"></script><script src="js/app.js"></script><script type="module" src="js/register.js"></script></body></html>
+<script>(function(){var b=document.querySelector(".burger"),n=document.getElementById("nav");if(!b||!n)return;window.MENU_BOUND=true;function c(){n.classList.remove("open");b.setAttribute("aria-expanded","false")}b.addEventListener("click",function(){var o=n.classList.toggle("open");b.setAttribute("aria-expanded",o)});n.addEventListener("click",function(e){if(e.target.closest("a"))c()});document.addEventListener("keydown",function(e){if(e.key==="Escape")c()})})();</script><script src="js/config.js"></script><script src="js/app.js"></script><script>
+/* DEBUG GUARD: login refresh nahi hoga, aur JS load fail hua to screen pe error dikhega */
+(function(){
+  function show(msg){
+    var f=document.querySelector("form")||document.getElementById("regApp");
+    if(!f)return;
+    var n=document.getElementById("jsFail");
+    if(!n){n=document.createElement("p");n.id="jsFail";n.className="notice err";n.setAttribute("role","alert");f.parentNode.insertBefore(n,f);}
+    n.textContent=msg;
+  }
+  window.__showJsFail=show;
+  document.addEventListener("submit",function(e){e.preventDefault();},true);
+  window.addEventListener("error",function(e){show("JS error: "+(e.message||e.filename||"script load failed"));});
+  window.addEventListener("unhandledrejection",function(e){show("JS error: "+((e.reason&&e.reason.message)||e.reason));});
+})();
+</script>
+<script type="module" src="js/register.js" onerror="__showJsFail('js/register.js load nahi hua (404 / path galat). Network tab check karo.')"></script></body></html>
