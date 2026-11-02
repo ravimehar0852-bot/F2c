@@ -1,5 +1,5 @@
 {
-  "name": "loan-website",
+  "name": "f2c",
   "private": true,
   "engines": { "node": "22.x" },
   "dependencies": { "nodemailer": "^6.9.15" }
