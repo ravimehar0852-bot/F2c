@@ -4,12 +4,12 @@
    ===================================================== */
 window.SITE = {
   name: "Nidhi Capital",    // Official company name
-  phone: "",                // Digits with country code for tel: links, e.g. "91XXXXXXXXXX"
+  phone: "9341395968",                // Digits with country code for tel: links, e.g. "91XXXXXXXXXX"
   phoneDisplay: "",         // How the number is shown, e.g. "+91 XXXXX XXXXX"
-  email: "",                // Business email
-  whatsapp: "918893895214", // Digits only with country code (+91 88938 95214)
-  address: "",              // Office address
-  hours: "",                // e.g. "Mon–Sat, 10:00 AM – 7:00 PM"
+  email: "supportnidhicapital@gmail.com",                // Business email
+  whatsapp: "919341395968", // Digits only with country code (+91 88938 95214)
+  address: "101-103, Mittal Court, A Wing, 10th Floor, Nariman Point, Mumbai 400021 - Maharashtra",              // Office address
+  hours: "24/7",                // e.g. "Mon–Sat, 10:00 AM – 7:00 PM"
   registration: "",         // Registration / licence details (leave empty unless this company has its own)
   grievanceOfficer: "",     // Grievance Redressal officer name
   grievanceContact: "",     // Grievance officer email / phone
