@@ -175,3 +175,19 @@ dialog .dlg.wide{padding:26px}dialog:has(.wide){width:min(860px,94vw)}.pre{white
 }
 .brand svg{display:none}
 .brand::before{content:"";flex:none;width:38px;height:38px;background:url("logo.png") center/contain no-repeat}
+
+/* Footer Logo Size Fix */
+footer img {
+  width: 120px !important;
+  height: 120px !important;
+  max-width: 120px !important;
+  object-fit: contain;
+}
+
+@media(max-width:640px) {
+  footer img {
+    width: 100px !important;
+    height: 100px !important;
+    max-width: 100px !important;
+  }
+}
