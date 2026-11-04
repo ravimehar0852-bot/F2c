@@ -230,3 +230,24 @@ footer,
 .footer {
   background-color: #093037 !important;
 }
+/* Footer Brand Styling */
+footer .footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+
+footer .brand-name {
+  display: inline-flex;
+  gap: 5px;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+footer .brand-nidhi {
+  color: #087A78 !important;
+}
+
+footer .brand-capital {
+  color: #F20D18 !important;
+}
