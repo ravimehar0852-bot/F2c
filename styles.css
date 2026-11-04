@@ -278,3 +278,48 @@ section .grid.g4 > .card p {
   color: #FFF7ED !important;
 }
 
+/* =====================================
+   NIDHI CAPITAL - SELECTED SECTION COLORS
+   ===================================== */
+
+/* SERVICES - LOAN CATEGORIES */
+#serviceGrid .svc {
+  background: #0A7B83 !important;
+  border-color: #0A7B83 !important;
+}
+
+#serviceGrid .svc h3,
+#serviceGrid .svc h4,
+#serviceGrid .svc p,
+#serviceGrid .svc li,
+#serviceGrid .svc .uses {
+  color: #FFFFFF !important;
+}
+
+/* SERVICES - APPLICATION PROCESS */
+.steps .card {
+  background: #EF8927 !important;
+  border-color: #EF8927 !important;
+}
+
+.steps .card h3,
+.steps .card p {
+  color: #FFFFFF !important;
+}
+
+/* CONTACT - INFORMATION CARDS */
+.info .card {
+  background: #0A7B83 !important;
+  border-color: #0A7B83 !important;
+}
+
+.info .card h3,
+.info .card p,
+.info .card a {
+  color: #FFFFFF !important;
+}
+
+.info .card .ico {
+  background: rgba(255,255,255,0.18);
+  color: #FFFFFF;
+}
