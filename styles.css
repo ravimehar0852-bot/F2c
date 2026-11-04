@@ -264,3 +264,16 @@ footer .brand-capital {
 #homeServices .card p {
   color: #EAF6F6 !important;
 }
+/* Why People Choose Cards */
+section .grid.g4 > .card {
+  background-color: #EF8927 !important;
+  border-color: #EF8927 !important;
+}
+
+section .grid.g4 > .card h3 {
+  color: #FFFFFF !important;
+}
+
+section .grid.g4 > .card p {
+  color: #FFF7ED !important;
+}
