@@ -224,3 +224,9 @@ footer .brand::before {
 .brand-capital {
   color: #F20D18 !important;
 }
+/* Footer Background Only */
+footer,
+.site-footer,
+.footer {
+  background-color: #093037 !important;
+}
