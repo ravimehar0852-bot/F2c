@@ -159,3 +159,17 @@ tbody tr[data-id]{cursor:pointer}tbody tr[data-id]:hover{background:var(--bg2)}t
 .pager{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:.9rem;flex-wrap:wrap}
 dialog .dlg.wide{padding:26px}dialog:has(.wide){width:min(860px,94vw)}.pre{white-space:pre-wrap;background:var(--bg2);padding:16px;border-radius:12px;font-size:.88rem;margin:12px 0}
 .adm details.card summary{padding:16px 54px 16px 22px}.adm details.card{padding:0}
+/* Nidhi Capital Header Branding */
+.brand-name {
+  display: inline-flex;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.brand-nidhi {
+  color: #087A78;
+}
+
+.brand-capital {
+  color: #F20D18;
+}
