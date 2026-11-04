@@ -251,3 +251,16 @@ footer .brand-nidhi {
 footer .brand-capital {
   color: #F20D18 !important;
 }
+/* Loan Category Cards Only */
+#homeServices .card {
+  background: #0A7B83 !important;
+  border-color: #0A7B83 !important;
+}
+
+#homeServices .card h3 {
+  color: #FFFFFF !important;
+}
+
+#homeServices .card p {
+  color: #EAF6F6 !important;
+}
