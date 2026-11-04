@@ -210,3 +210,17 @@ footer .brand::before {
     height: 75px !important;
   }
 }
+/* Nidhi Capital Brand Colors - Header & Footer */
+.brand-name {
+  display: inline-flex !important;
+  gap: 5px;
+  font-weight: 700;
+}
+
+.brand-nidhi {
+  color: #087A78 !important;
+}
+
+.brand-capital {
+  color: #F20D18 !important;
+}
