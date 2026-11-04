@@ -377,3 +377,29 @@ body:has(.page-hero) .card:has([data-ico]) .ico {
   background: rgba(255,255,255,0.18);
   color: #FFFFFF;
 }
+/* ABOUT US - OUR APPROACH */
+body:has(.page-hero) section:has(h2) .grid.g3:has([data-ico="list"]) .card,
+body:has(.page-hero) section:has(h2) .grid.g3:has([data-ico="doc"]) .card,
+body:has(.page-hero) section:has(h2) .grid.g3:has([data-ico="chat"]) .card {
+  background: #0A7B83 !important;
+  border-color: #0A7B83 !important;
+  color: #FFFFFF !important;
+}
+
+/* ABOUT US - WHY CHOOSE US */
+body:has(.page-hero) section:has(h2) .grid.g3:has([data-ico="eye"]) .card {
+  background: #0A7B83 !important;
+  border-color: #0A7B83 !important;
+  color: #FFFFFF !important;
+}
+
+/* White text and icons */
+body:has(.page-hero) .grid.g3:has([data-ico]) .card h3,
+body:has(.page-hero) .grid.g3:has([data-ico]) .card p {
+  color: #FFFFFF !important;
+}
+
+body:has(.page-hero) .grid.g3:has([data-ico]) .ico {
+  background: rgba(255,255,255,0.18);
+  color: #FFFFFF;
+}
