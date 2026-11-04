@@ -278,38 +278,3 @@ section .grid.g4 > .card p {
   color: #FFF7ED !important;
 }
 
-/* Loan Categories */
-#homeServices > :nth-child(odd) {
-  background: #0A7B83 !important;
-}
-
-#homeServices > :nth-child(even) {
-  background: #EF8927 !important;
-}
-/* ===== CATEGORY BOXES ===== */
-#homeServices .card:nth-child(odd) {
-  background: #0A7B83 !important;
-  border-color: #0A7B83 !important;
-}
-
-#homeServices .card:nth-child(even) {
-  background: #EF8927 !important;
-  border-color: #EF8927 !important;
-}
-
-/* ===== WHY CHOOSE US BOXES ===== */
-.why-section .card:nth-child(odd) {
-  background: #0A7B83 !important;
-  border-color: #0A7B83 !important;
-}
-
-.why-section .card:nth-child(even) {
-  background: #EF8927 !important;
-  border-color: #EF8927 !important;
-}
-
-/* White text inside these boxes */
-#homeServices .card *,
-.why-section .card * {
-  color: #FFFFFF !important;
-}
