@@ -277,3 +277,43 @@ section .grid.g4 > .card h3 {
 section .grid.g4 > .card p {
   color: #FFF7ED !important;
 }
+/* ===== NIDHI CAPITAL - GLOBAL CARD COLORS ===== */
+
+/* Teal Cards */
+body .card:nth-child(odd),
+body .form-card:nth-child(odd) {
+  background: #0A7B83 !important;
+  border-color: #0A7B83 !important;
+}
+
+/* Orange Cards */
+body .card:nth-child(even),
+body .form-card:nth-child(even) {
+  background: #EF8927 !important;
+  border-color: #EF8927 !important;
+}
+
+/* White Text */
+body .card h3,
+body .card h4,
+body .card p,
+body .form-card h2,
+body .form-card h3,
+body .form-card p {
+  color: #FFFFFF !important;
+}
+
+/* Icons */
+body .card .ico {
+  background: rgba(255,255,255,0.18);
+  color: #FFFFFF;
+}
+
+/* Loan Categories */
+#homeServices > :nth-child(odd) {
+  background: #0A7B83 !important;
+}
+
+#homeServices > :nth-child(even) {
+  background: #EF8927 !important;
+}
