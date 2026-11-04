@@ -323,3 +323,57 @@ section .grid.g4 > .card p {
   background: rgba(255,255,255,0.18);
   color: #FFFFFF;
 }
+/* ABOUT PAGE - SELECTED CARD COLORS */
+
+/* Our Approach */
+body:has(.page-hero) .grid.g3 .card:has([data-ico="list"]),
+body:has(.page-hero) .grid.g3 .card:has([data-ico="doc"]),
+body:has(.page-hero) .grid.g3 .card:has([data-ico="chat"]) {
+  background: #0A7B83;
+  border-color: #0A7B83;
+  color: #FFFFFF;
+}
+
+/* How We Assist Customers */
+body:has(.page-hero) .steps:first-of-type .card {
+  background: #EF8927;
+  border-color: #EF8927;
+  color: #FFFFFF;
+}
+
+/* Why Choose Us */
+body:has(.page-hero) .grid.g3 .card:has([data-ico="eye"]) {
+  background: #0A7B83;
+  border-color: #0A7B83;
+  color: #FFFFFF;
+}
+
+/* How Your Application Works */
+body:has(.page-hero) .steps .card {
+  background: #EF8927;
+  border-color: #EF8927;
+  color: #FFFFFF;
+}
+
+/* 24/7 Customer Support */
+body:has(.page-hero) .grid.g3 .card:has(a[href^="tel:"]),
+body:has(.page-hero) .grid.g3 .card:has([data-site="email"]),
+body:has(.page-hero) .grid.g3 .card:has([data-site="address"]) {
+  background: #0A7B83;
+  border-color: #0A7B83;
+  color: #FFFFFF;
+}
+
+/* White text inside selected cards */
+body:has(.page-hero) .card h3,
+body:has(.page-hero) .card p,
+body:has(.page-hero) .card a,
+body:has(.page-hero) .card li {
+  color: inherit;
+}
+
+/* Selected card icons */
+body:has(.page-hero) .card:has([data-ico]) .ico {
+  background: rgba(255,255,255,0.18);
+  color: #FFFFFF;
+}
